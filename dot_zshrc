@@ -9,7 +9,7 @@ setopt hist_ignore_all_dups
 # ===========================
 # Environment Variables
 # ===========================
-source ~/.env
+source ~/.env   # mainly API keys
 
 export PATH="/usr/local/sbin:/usr/local/bin:$HOME/bin:$HOME/go/bin:$PATH"
 export PATH="/usr/local/opt/texinfo/bin:$PATH"
