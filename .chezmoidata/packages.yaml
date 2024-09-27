@@ -1,0 +1,21 @@
+packages:
+  darwin:
+    brews:
+      - "bat"
+      - "bat-extras"
+      - "chezmoi"
+      - "eza"
+      - "fzf"
+      - "git-crypt"
+      - "gnupg"
+      - "libolm"
+      - "neovim"
+      - "pinentry"
+      - "ripgrep"
+      - "rm-improved"
+      - "starship"
+      - "tor"
+      - "zoxide"
+    casks:
+      - "tor-browser"
+      - "wezterm"
