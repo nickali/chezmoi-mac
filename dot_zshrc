@@ -1,0 +1,97 @@
+# ===========================
+# History Settings
+# ===========================
+setopt append_history
+setopt inc_append_history
+setopt share_history
+setopt hist_ignore_all_dups
+
+# ===========================
+# Environment Variables
+# ===========================
+source ~/.env
+
+export PATH="/usr/local/sbin:/usr/local/bin:$HOME/bin:$HOME/go/bin:$PATH"
+export PATH="/usr/local/opt/texinfo/bin:$PATH"
+export PATH="$PATH:/usr/local/texlive/2024/bin/universal-darwin"
+#export PATH="$(brew --prefix openssh)/bin:$PATH"
+
+export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+export EDITOR=nvim
+
+# GPG Agent Configuration
+export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
+GPG_TTY=$(tty)
+export GPG_TTY
+
+# ===========================
+# Gatekeeper Aliases
+# ===========================
+
+alias approvebb='sudo spctl --add /Applications/Betterbird.app'
+alias approvechromium='sudo spctl --add /Applications/Chromium.app'
+
+# ===========================
+# App Aliases
+# ===========================
+
+alias dig='doggo'
+alias more="bat --theme 'ansi'"
+alias rm="echo Use rip"
+alias top="htop -C"
+alias vim='nvim'
+alias vi='nvim'
+
+# ===========================
+# Extending Commands Aliases
+# ===========================
+
+alias brewupdate='brew update && brew upgrade && brew upgrade --casks --greedy'
+alias eza="eza --color-scale=all --color-scale-mode=gradient -l"
+alias gpgstart='gpg-connect-agent updatestartuptty /bye; gpgconf --kill gpg-agent && gpg-agent --homedir /Users/nali/.gnupg --enable-ssh-support --daemon -q --debug-level none'
+
+# ===========================
+# Autoloads and Initializations
+# ===========================
+autoload throw catch
+
+# ===========================
+# Starship prompt
+# ===========================
+export STARSHIP_CONFIG=~/.config/starship/starship.toml
+eval "$(starship init zsh)"
+
+# ===========================
+# FZF
+# ===========================
+eval "$(fzf --zsh)"
+alias fzfpreview="fzf --preview 'bat --style=numbers --color=always --line-range :500 {}'"
+
+## Use FZF to search zsh history
+fh() {
+    eval $( ([ -n "$ZSH_NAME" ] && fc -l 1 || history) | fzf +s --tac | sed 's/ *[0-9]* *//')
+}
+
+# ===========================
+# Zoxide Custom Functions
+# ===========================
+eval "$(zoxide init zsh --cmd cd)"
+function z() {
+    __zoxide_z "$@" && eza -G --color-scale=all --color-scale-mode=gradient -l
+}
+
+function zi() {
+    __zoxide_zi "$@" && eza -G --color-scale=all --color-scale-mode=gradient -l
+}
+
+# ===========================
+# MISE
+# ===========================
+eval "$(/Users/nali/.local/bin/mise activate zsh)"
+export PATH="$PATH:$HOME/.local/share/mise/installs/go/latest/bin"
+
+# ===========================
+# Load Additional Configurations
+# ===========================
+source ~/.zshrc_extra
+
