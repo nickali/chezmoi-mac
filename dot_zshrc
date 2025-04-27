@@ -41,6 +41,7 @@ alias rm="echo Use rip"
 alias top="htop -C"
 alias vim='nvim'
 alias vi='nvim'
+alias naps2.console="/Applications/NAPS2.app/Contents/MacOS/NAPS2 console"
 
 # ===========================
 # Extending Commands Aliases
