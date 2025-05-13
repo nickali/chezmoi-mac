@@ -6,6 +6,9 @@ setopt inc_append_history
 setopt share_history
 setopt hist_ignore_all_dups
 
+autoload -Uz compinit
+compinit
+
 # ===========================
 # Environment Variables
 # ===========================
@@ -50,7 +53,19 @@ alias naps2.console="/Applications/NAPS2.app/Contents/MacOS/NAPS2 console"
 alias brewupdate='brew update && brew upgrade && brew upgrade --casks --greedy'
 alias eza="eza --color-scale=all --color-scale-mode=gradient -l"
 alias gpgstart='gpg-connect-agent updatestartuptty /bye; gpgconf --kill gpg-agent && gpg-agent --homedir /Users/nali/.gnupg --enable-ssh-support --daemon -q --debug-level none'
+alias adguardfrigg='ADGUARD_IP=$ADGUARD1_IP ADGUARD_PORT=$ADGUARD1_PORT ADGUARD_USERNAME=$ADGUARD1_USERNAME ADGUARD_PASSWORD=$ADGUARD1_PASSWORD adguardian'
+alias adguardbalder='ADGUARD_IP=$ADGUARD2_IP ADGUARD_PORT=$ADGUARD2_PORT ADGUARD_USERNAME=$ADGUARD2_USERNAME ADGUARD_PASSWORD=$ADGUARD2_PASSWORD adguardian'
 
+# ===========================
+# Autoloads and Initializations
+# ===========================
+autoload throw catch
+
+# ===========================
+# Starship prompt
+# ===========================
+export STARSHIP_CONFIG=~/.config/starship/starship.toml
+eval "$(starship init zsh)"
 # ===========================
 # Autoloads and Initializations
 # ===========================

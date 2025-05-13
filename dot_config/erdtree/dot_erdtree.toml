@@ -1,0 +1,8 @@
+icons = true
+human = true
+level = 1
+suppress-size = true
+long = true
+threads = 40
+hidden = true
+sort = "rname"
