@@ -7,7 +7,7 @@ window-theme = dark
 theme = ayu 
 font-family = "Monaco"
 font-thicken = true
-keybind = global:ctrl+grave_accent=toggle_quick_terminal
+keybind = global:ctrl+escape=toggle_quick_terminal
 quick-terminal-animation-duration = 0.1
 quick-terminal-position = center
 link-url = true

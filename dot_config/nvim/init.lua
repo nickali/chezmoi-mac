@@ -17,10 +17,3 @@ end
 
 require "lazy_setup"
 require "polish"
-vim.o.exrc = true
---vim.o.secure = true
---
---
-
---  require('dapui').setup()
-require("dap-python").setup "/Users/nali/.local/share/mise/installs/python/latest/bin/python"

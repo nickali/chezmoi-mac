@@ -40,7 +40,6 @@ alias approvechromium='sudo spctl --add /Applications/Chromium.app'
 
 alias dig='doggo'
 alias more="bat --theme 'ansi'"
-alias rm="echo Use rip"
 alias top="htop -C"
 alias vim='nvim'
 alias vi='nvim'
@@ -105,6 +104,126 @@ function zi() {
 # ===========================
 eval "$(/Users/nali/.local/bin/mise activate zsh)"
 export PATH="$PATH:$HOME/.local/share/mise/installs/go/latest/bin"
+
+# ===========================
+# Easier editing of gpg encrypted files
+# ===========================
+edit-gpg() {
+    # Edit GPG encrypted files on macOS
+    # Usage: edit-gpg <file.gpg> [recipient-email]
+    
+    local gpg_file="$1"
+    local recipient="${2:-}"
+    local temp_file
+    local recipients
+    
+    # Check arguments
+    if [[ $# -lt 1 ]]; then
+        echo "Usage: edit-gpg <file.gpg> [recipient-email]"
+        echo "Example: edit-gpg secret.gpg john@example.com"
+        return 1
+    fi
+    
+    # Check if file exists
+    if [[ ! -f "$gpg_file" ]]; then
+        echo "❌ Error: File '$gpg_file' not found"
+        return 1
+    fi
+    
+    # Check if gpg is available
+    if ! command -v gpg &> /dev/null; then
+        echo "❌ Error: GPG not found. Install with: brew install gnupg"
+        return 1
+    fi
+    
+    # Create secure temporary file
+    temp_file=$(mktemp -t "gpg_edit_XXXXXX")
+    
+    # Cleanup function
+    local cleanup() {
+        if [[ -f "$temp_file" ]]; then
+            rm -P "$temp_file" 2>/dev/null || rm "$temp_file"
+        fi
+    }
+    
+    # Set up cleanup - use local trap that won't affect global shell
+    {
+        echo "🔓 Decrypting $gpg_file..."
+        
+        # Decrypt file
+        if ! gpg --quiet --decrypt "$gpg_file" > "$temp_file"; then
+            echo "❌ Failed to decrypt file. Check your GPG setup."
+            cleanup
+            return 1
+        fi
+        
+        echo "✏️  Opening editor..."
+        
+        # Determine editor
+        local editor="${EDITOR:-${VISUAL:-nano}}"
+        
+        # Open editor
+        if ! "$editor" "$temp_file"; then
+            echo "❌ Editor exited with error"
+            cleanup
+            return 1
+        fi
+        
+        # Check if file was modified
+        if [[ ! -s "$temp_file" ]]; then
+            echo "⚠️  File is empty, skipping encryption"
+            cleanup
+            return 1
+        fi
+        
+        # Determine recipient
+        if [[ -z "$recipient" ]]; then
+            # Try to extract recipients from original file
+            echo "🔍 Detecting recipients from original file..."
+            recipients=$(gpg --list-packets "$gpg_file" 2>/dev/null | grep "keyid" | sed 's/.*keyid //' | tr '\n' ' ')
+            
+            if [[ -n "$recipients" ]]; then
+                echo "📧 Found recipients: $recipients"
+                # Use first recipient found
+                recipient=$(echo "$recipients" | awk '{print $1}')
+            else
+                echo "❓ No recipient specified and none found in file."
+                echo "Available keys:"
+                gpg --list-keys --keyid-format SHORT
+                read "recipient?Enter recipient (email or key ID): "
+            fi
+        fi
+        
+        # Validate recipient
+        if [[ -z "$recipient" ]]; then
+            echo "❌ No recipient specified"
+            cleanup
+            return 1
+        fi
+        
+        echo "🔐 Encrypting with recipient: $recipient"
+        
+        # Create backup
+        cp "$gpg_file" "${gpg_file}.backup"
+        
+        # Encrypt file - ADD --yes flag to auto-overwrite
+        if gpg --quiet --yes --trust-model always --encrypt --armor --recipient "$recipient" --output "$gpg_file" "$temp_file"; then
+            echo "✅ Successfully encrypted $gpg_file"
+            rm "${gpg_file}.backup"
+        else
+            echo "❌ Encryption failed, restoring backup"
+            mv "${gpg_file}.backup" "$gpg_file"
+            cleanup
+            return 1
+        fi
+        
+        echo "🎉 Done!"
+        
+    } always {
+        # This always runs, even if interrupted
+        cleanup
+    }
+}
 
 # ===========================
 # Load Additional Configurations
