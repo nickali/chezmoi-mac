@@ -50,7 +50,6 @@ alias naps2.console="/Applications/NAPS2.app/Contents/MacOS/NAPS2 console"
 # ===========================
 
 alias brewupdate='brew update && brew upgrade && brew upgrade --casks --greedy'
-alias eza="eza --color-scale=all --color-scale-mode=gradient -l"
 alias gpgstart='gpg-connect-agent updatestartuptty /bye; gpgconf --kill gpg-agent && gpg-agent --homedir /Users/nali/.gnupg --enable-ssh-support --daemon -q --debug-level none'
 alias adguardfrigg='ADGUARD_IP=$ADGUARD1_IP ADGUARD_PORT=$ADGUARD1_PORT ADGUARD_USERNAME=$ADGUARD1_USERNAME ADGUARD_PASSWORD=$ADGUARD1_PASSWORD adguardian'
 alias adguardbalder='ADGUARD_IP=$ADGUARD2_IP ADGUARD_PORT=$ADGUARD2_PORT ADGUARD_USERNAME=$ADGUARD2_USERNAME ADGUARD_PASSWORD=$ADGUARD2_PASSWORD adguardian'
@@ -65,16 +64,11 @@ autoload throw catch
 # ===========================
 export STARSHIP_CONFIG=~/.config/starship/starship.toml
 eval "$(starship init zsh)"
+
 # ===========================
 # Autoloads and Initializations
 # ===========================
 autoload throw catch
-
-# ===========================
-# Starship prompt
-# ===========================
-export STARSHIP_CONFIG=~/.config/starship/starship.toml
-eval "$(starship init zsh)"
 
 # ===========================
 # FZF
@@ -91,139 +85,12 @@ fh() {
 # Zoxide Custom Functions
 # ===========================
 eval "$(zoxide init zsh --cmd cd)"
-function z() {
-    __zoxide_z "$@" && eza -G --color-scale=all --color-scale-mode=gradient -l
-}
-
-function zi() {
-    __zoxide_zi "$@" && eza -G --color-scale=all --color-scale-mode=gradient -l
-}
 
 # ===========================
 # MISE
 # ===========================
 eval "$(/Users/nali/.local/bin/mise activate zsh)"
 export PATH="$PATH:$HOME/.local/share/mise/installs/go/latest/bin"
-
-# ===========================
-# Easier editing of gpg encrypted files
-# ===========================
-edit-gpg() {
-    # Edit GPG encrypted files on macOS
-    # Usage: edit-gpg <file.gpg> [recipient-email]
-    
-    local gpg_file="$1"
-    local recipient="${2:-}"
-    local temp_file
-    local recipients
-    
-    # Check arguments
-    if [[ $# -lt 1 ]]; then
-        echo "Usage: edit-gpg <file.gpg> [recipient-email]"
-        echo "Example: edit-gpg secret.gpg john@example.com"
-        return 1
-    fi
-    
-    # Check if file exists
-    if [[ ! -f "$gpg_file" ]]; then
-        echo "❌ Error: File '$gpg_file' not found"
-        return 1
-    fi
-    
-    # Check if gpg is available
-    if ! command -v gpg &> /dev/null; then
-        echo "❌ Error: GPG not found. Install with: brew install gnupg"
-        return 1
-    fi
-    
-    # Create secure temporary file
-    temp_file=$(mktemp -t "gpg_edit_XXXXXX")
-    
-    # Cleanup function
-    local cleanup() {
-        if [[ -f "$temp_file" ]]; then
-            rm -P "$temp_file" 2>/dev/null || rm "$temp_file"
-        fi
-    }
-    
-    # Set up cleanup - use local trap that won't affect global shell
-    {
-        echo "🔓 Decrypting $gpg_file..."
-        
-        # Decrypt file
-        if ! gpg --quiet --decrypt "$gpg_file" > "$temp_file"; then
-            echo "❌ Failed to decrypt file. Check your GPG setup."
-            cleanup
-            return 1
-        fi
-        
-        echo "✏️  Opening editor..."
-        
-        # Determine editor
-        local editor="${EDITOR:-${VISUAL:-nano}}"
-        
-        # Open editor
-        if ! "$editor" "$temp_file"; then
-            echo "❌ Editor exited with error"
-            cleanup
-            return 1
-        fi
-        
-        # Check if file was modified
-        if [[ ! -s "$temp_file" ]]; then
-            echo "⚠️  File is empty, skipping encryption"
-            cleanup
-            return 1
-        fi
-        
-        # Determine recipient
-        if [[ -z "$recipient" ]]; then
-            # Try to extract recipients from original file
-            echo "🔍 Detecting recipients from original file..."
-            recipients=$(gpg --list-packets "$gpg_file" 2>/dev/null | grep "keyid" | sed 's/.*keyid //' | tr '\n' ' ')
-            
-            if [[ -n "$recipients" ]]; then
-                echo "📧 Found recipients: $recipients"
-                # Use first recipient found
-                recipient=$(echo "$recipients" | awk '{print $1}')
-            else
-                echo "❓ No recipient specified and none found in file."
-                echo "Available keys:"
-                gpg --list-keys --keyid-format SHORT
-                read "recipient?Enter recipient (email or key ID): "
-            fi
-        fi
-        
-        # Validate recipient
-        if [[ -z "$recipient" ]]; then
-            echo "❌ No recipient specified"
-            cleanup
-            return 1
-        fi
-        
-        echo "🔐 Encrypting with recipient: $recipient"
-        
-        # Create backup
-        cp "$gpg_file" "${gpg_file}.backup"
-        
-        # Encrypt file - ADD --yes flag to auto-overwrite
-        if gpg --quiet --yes --trust-model always --encrypt --armor --recipient "$recipient" --output "$gpg_file" "$temp_file"; then
-            echo "✅ Successfully encrypted $gpg_file"
-            rm "${gpg_file}.backup"
-        else
-            echo "❌ Encryption failed, restoring backup"
-            mv "${gpg_file}.backup" "$gpg_file"
-            cleanup
-            return 1
-        fi
-        
-        echo "🎉 Done!"
-        
-    } always {
-        # This always runs, even if interrupted
-        cleanup
-    }
-}
 
 # ===========================
 # Load Additional Configurations
